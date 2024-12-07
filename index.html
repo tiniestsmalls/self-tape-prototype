@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Audition App</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+
+      header {
+        background-color: #f5f5f5;
+        padding: 10px;
+        text-align: center;
+        font-size: 20px;
+        font-weight: bold;
+        border-bottom: 1px solid #ccc;
+      }
+
+      .container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      .container > .camera {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #eaeaea;
+        position: relative;
+      }
+
+      .container > .camera video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .script {
+        background-color: #fff;
+        padding: 20px;
+        overflow-y: auto;
+        border-left: 1px solid #ccc;
+      }
+
+      .script h2 {
+        margin: 0;
+        margin-bottom: 10px;
+      }
+
+      .script .line {
+        margin-bottom: 15px;
+      }
+
+      .script .line span {
+        display: block;
+        font-size: 14px;
+        color: #555;
+      }
+
+      .script .line .character {
+        font-weight: bold;
+        color: #007bff;
+      }
+
+      .footer {
+        padding: 15px;
+        text-align: center;
+      }
+
+      .footer button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      .footer button:hover {
+        background-color: #0056b3;
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          grid-template-columns: 1fr;
+          grid-template-rows: 1fr 1fr;
+        }
+
+        .container > .script {
+          border-left: none;
+          border-top: 1px solid #ccc;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>Project Name</header>
+
+    <div class="container">
+      <div class="camera">
+        <video id="video" autoplay playsinline></video>
+      </div>
+
+      <div class="script">
+        <h2>LOREM IPSUM SCRIPT</h2>
+        <div id="script-container">
+          <!-- Dynamic content will be rendered here -->
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <button id="startAudition">Start audition</button>
+    </div>
+
+    <script>
+      // Access the camera
+      const video = document.getElementById("video");
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then((stream) => {
+          video.srcObject = stream;
+          window.stream = stream; // Save stream globally for recording
+        })
+        .catch((err) => {
+          console.error("Error accessing the camera:", err);
+        });
+
+      // Recording functionality
+      let mediaRecorder;
+      let chunks = [];
+
+      const startButton = document.getElementById("startAudition");
+      startButton.addEventListener("click", () => {
+        if (startButton.textContent === "Start audition") {
+          startRecording();
+          startButton.textContent = "Stop audition";
+        } else {
+          stopRecording();
+          startButton.textContent = "Start audition";
+        }
+      });
+
+      function startRecording() {
+        if (window.stream) {
+          mediaRecorder = new MediaRecorder(window.stream);
+          mediaRecorder.ondataavailable = (event) => chunks.push(event.data);
+          mediaRecorder.onstop = saveRecording;
+          mediaRecorder.start();
+          console.log("Recording started");
+        }
+      }
+
+      function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+          mediaRecorder.stop();
+          console.log("Recording stopped");
+        }
+      }
+
+      function saveRecording() {
+        const blob = new Blob(chunks, { type: "video/webm" });
+        chunks = [];
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "recording.webm";
+        a.click();
+        URL.revokeObjectURL(url);
+        console.log("Recording saved");
+      }
+
+      // Placeholder for dynamically rendering script content
+      const scriptContainer = document.getElementById("script-container");
+      const scriptLines = [
+        {
+          character: "MYSELF",
+          text: "Sample line that someone needs to read.",
+        },
+        {
+          character: "READER [character name]",
+          text: "Sample line that someone needs to read.",
+        },
+        { character: "MYSELF", text: "Another sample line for myself." },
+        {
+          character: "READER [character name]",
+          text: "Another sample line for the reader.",
+        },
+      ];
+
+      scriptLines.forEach((line) => {
+        const lineDiv = document.createElement("div");
+        lineDiv.className = "line";
+        lineDiv.innerHTML = `<span class="character">${line.character}</span><span>${line.text}</span>`;
+        scriptContainer.appendChild(lineDiv);
+      });
+
+      // Placeholder for PDF.js integration (optional)
+      // Use PDF.js to load and parse a PDF, then dynamically populate "scriptContainer"
+    </script>
+  </body>
+</html>
