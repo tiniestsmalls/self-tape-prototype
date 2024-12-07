@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Audition App - Input</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+
+      h1 {
+        text-align: center;
+      }
+
+      .container {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+
+      .error {
+        color: red;
+        text-align: center;
+        margin-bottom: 10px;
+      }
+
+      label {
+        display: block;
+        margin: 10px 0 5px;
+      }
+
+      input[type="text"],
+      input[type="file"] {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+      }
+
+      button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        display: block;
+        margin: 15px auto;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Audition App - Input</h1>
+
+    <div class="container">
+      <div class="error" id="error-message"></div>
+      <label for="character-name">Enter your character name:</label>
+      <input type="text" id="character-name" />
+
+      <label for="file-upload">Upload your script (PDF):</label>
+      <input type="file" id="file-upload" accept=".pdf" />
+
+      <button id="continue-btn">Continue</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script>
+      const continueButton = document.getElementById("continue-btn");
+      const characterNameInput = document.getElementById("character-name");
+      const fileUploadInput = document.getElementById("file-upload");
+      const errorMessageDiv = document.getElementById("error-message");
+
+      continueButton.addEventListener("click", async () => {
+        const characterName = characterNameInput.value.trim();
+        const file = fileUploadInput.files[0];
+
+        if (!characterName || !file) {
+          errorMessageDiv.textContent = "Both fields are required to continue.";
+          return;
+        }
+
+        errorMessageDiv.textContent = ""; // Clear error message
+
+        try {
+          // Parse uploaded file
+          const textContent = await parsePDF(file);
+          // Save data to localStorage
+          localStorage.setItem("userCharacterName", characterName);
+          localStorage.setItem("extractedScript", JSON.stringify(textContent));
+
+          // Navigate to recordingPage
+          window.location.href = "recordingPage.html";
+        } catch (error) {
+          console.error("Error parsing the file:", error);
+          errorMessageDiv.textContent =
+            "Failed to parse the uploaded PDF. Please try again.";
+        }
+      });
+
+      async function parsePDF(file) {
+        const fileReader = new FileReader();
+        return new Promise((resolve, reject) => {
+          fileReader.onload = async (event) => {
+            try {
+              const typedArray = new Uint8Array(event.target.result);
+              const pdfDoc = await pdfjsLib.getDocument(typedArray).promise;
+              const numPages = pdfDoc.numPages;
+              let extractedText = [];
+
+              for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+                const page = await pdfDoc.getPage(pageNum);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items
+                  .map((item) => item.str)
+                  .join(" ");
+                extractedText.push(pageText);
+              }
+
+              resolve(extractedText.join(" "));
+            } catch (error) {
+              reject(error);
+            }
+          };
+
+          fileReader.onerror = (error) => reject(error);
+          fileReader.readAsArrayBuffer(file);
+        });
+      }
+    </script>
+  </body>
+</html>
