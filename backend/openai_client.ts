@@ -1,7 +1,7 @@
 import fs from "fs";
 import OpenAI from "openai";
 
-const openai = new OpenAI({ apiKey: "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" });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function synthesizeAudio(text, outputPath) {
     const mp3 = await openai.audio.speech.create({
