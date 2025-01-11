@@ -1,5 +1,8 @@
 import fs from "fs";
 import OpenAI from "openai";
+import dotenv from "dotenv";
+
+dotenv.config({ debug: true });
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -13,10 +16,11 @@ export async function synthesizeAudio(text, outputPath) {
     await fs.promises.writeFile(outputPath, buffer);
 }
 
-export async function transcribeAudioAPI(audioFilePath) {
+export async function transcribeAudioAPI(audioFilePath): Promise<string> {
     const transcription = await openai.audio.transcriptions.create({
         file: fs.createReadStream(audioFilePath),
         model: "whisper-1",
       });
       console.log(transcription.text);
+      return transcription.text;
 }

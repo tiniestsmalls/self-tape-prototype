@@ -1,32 +1,32 @@
-import fs from "fs";
-import path from "path";
-import { synthesizeAudio } from "./openai_client.js";
+import { generateAudio } from "./generate_audio.js";
+import { readThrough } from "./readthrough.js";
+import { parseScreenplay } from "./parse.js";
 
-async function generateAudio(jsonFilePath) {
-    // Create audio directory if it doesn't exist
-    const audioDir = './audio';
-    if (!fs.existsSync(audioDir)) {
-        fs.mkdirSync(audioDir);
+async function main() {
+   if (process.argv.length < 3) {
+        console.error("Please provide a PDF file path as argument");
+        process.exit(1);
     }
+    
+    try {
+        // Parse PDF
+        console.log("Parsing PDF...");
+        const jsonPath = await parseScreenplay(process.argv[2]);
 
-    // Read and parse JSON file
-    const jsonContent = await fs.promises.readFile(jsonFilePath, 'utf8');
-    const jsonArray = JSON.parse(jsonContent);
-
-    // Process each object in the array
-    for (let i = 0; i < jsonArray.length; i++) {
-        const text = jsonArray[i].line;
-        const outputPath = path.join(audioDir, `${i}_${jsonArray[i].character}.mp3`);
+        // Generate audio
+        console.log("Generating audio files...");
+        await generateAudio(jsonPath);
         
-        try {
-            await synthesizeAudio(text, outputPath);
-            console.log(`Generated audio file: ${outputPath}`);
-        } catch (error) {
-            console.error(`Error generating audio for index ${i}:`, error);
-        }
+        // Run readthrough
+        console.log("Starting readthrough...");
+        await readThrough(jsonPath);
+
+        console.log("Workflow completed successfully!");
+        
+    } catch (error) {
+        console.error("Error in workflow:", error);
+        process.exit(1);
     }
 }
 
-// Example usage:
-generateAudio('./test_script.json');
-
+main();

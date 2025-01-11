@@ -2,7 +2,8 @@ import recorder from 'node-record-lpcm16';
 import fs from 'fs';
 import { transcribeAudioAPI } from './openai_client.js';
 
-export async function listenAndTranscribe() {
+export async function listenAndTranscribe(): Promise<string> {
+  var response = "";
   try {
     console.log('Listening... (speak now)');
     const audioFile = './audio/recording.wav';
@@ -12,10 +13,16 @@ export async function listenAndTranscribe() {
       audioType: 'wav',
       endOnSilence: true,
     });
-    recording.stream().pipe(fs.createWriteStream(audioFile)).on('close', () => {
-      transcribeAudioAPI(audioFile);
+    return new Promise((resolve) => {
+      recording.stream()
+          .pipe(fs.createWriteStream(audioFile))
+          .on('close', async () => {
+              const response = await transcribeAudioAPI(audioFile);
+              resolve(response);
+          });
     });
   } catch (error) {
     console.error('Recording error:', error.message);
   }
+  return response;
 }

@@ -6,20 +6,17 @@ npm install
 
 Add your OpenAI API key to the `.env` file.
 
-## Run the reading portion
-
-```bash
-npx tsx --env-file=.env readthrough.ts
-```
 
 ## Run parsing
 
+Uncomment the parse.ts file and run it with the pdf file.
+
 ```bash
-npx tsx --env-file=.env parse.ts ./sides.pdf
+npx tsx parse.ts ./sides.pdf
 ```
 
-## Run audio generation
+## Run the full workflow
 
 ```bash
-npx tsx --env-file=.env index.ts
+npx tsx index.ts
 ```
