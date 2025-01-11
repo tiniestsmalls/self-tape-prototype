@@ -7,11 +7,17 @@ npm install
 ## Run the reading portion
 
 ```bash
-node readthrough.js
+npx tsx readthrough.ts
 ```
 
 ## Run parsing
 
 ```bash
-node parse.js ./sides.pdf
+npx tsx parse.ts ./sides.pdf
+```
+
+## Run audio generation
+
+```bash
+npx tsx index.ts
 ```
