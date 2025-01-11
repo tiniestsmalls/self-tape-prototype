@@ -1,10 +1,16 @@
 ## Setup
 
+In the backend folder, run the following commands:
+
 ```bash
 npm install
 ```
 
-Add your OpenAI API key to the `.env` file.
+```bash
+cp .env .env.local
+```
+
+Then add your OpenAI API key to the `.env.local` file.
 
 
 ## Run parsing
