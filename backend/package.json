@@ -1,0 +1,28 @@
+{
+  "name": "selftapehelper",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "synthesize_audio.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "llamaindex": "^0.8.31",
+    "node-microphone": "^0.1.6",
+    "node-record-lpcm16": "^1.0.1",
+    "node-whisper": "^2024.11.13",
+    "nodejs-whisper": "^0.1.18",
+    "openai": "^4.76.0",
+    "whisper-live": "^0.2.1",
+    "whisper-node": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.3"
+  }
+}
