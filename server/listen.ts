@@ -21,7 +21,7 @@ export async function listenAndTranscribe(): Promise<string> {
               resolve(response);
           });
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Recording error:', error.message);
   }
   return response;

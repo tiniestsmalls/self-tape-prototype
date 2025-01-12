@@ -1,3 +1,5 @@
+*/node_modules
 node_modules
-backend/audio
-backend/.env.local
+server/audio
+server/.env.local
+dist/
