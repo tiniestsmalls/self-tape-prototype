@@ -1,7 +1,9 @@
 import { ScriptUploader } from './components/ScriptUploader';
-import { parseScreenplay } from './scripts/parse';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export function UploadPage() {
+  const navigate = useNavigate();
 
   const handleSubmit = async (characterName: string, file: File) => {
     // Here you can send the file to your backend
@@ -10,17 +12,15 @@ export function UploadPage() {
     formData.append('characterName', characterName);
 
     try {
-      //const response = await parseScreenplay(file);
       const response = await fetch('http://localhost:3001/api/parse-script', {
         method: 'POST',
         body: formData,
       });
       const data = await response.json();
       console.log(data);
-      // Save to localStorage if needed
       localStorage.setItem('userCharacterName', characterName);
-      //localStorage.setItem('extractedScript', JSON.stringify(data.scriptContent));
-
+      localStorage.setItem('extractedScript', JSON.stringify(data.scriptContent));
+      navigate('/script');
     } catch (error) {
       console.error('Error:', error);
       throw error; // This will be caught by the ScriptUploader component

@@ -15,13 +15,12 @@ export async function parseScreenplay(pdfPath: string): Promise<string> {
         const parsedScript = JSON.parse(result[0].text.substring(7, result[0].text.length - 3));
         console.log(parsedScript);
         // Write to JSON file
+        const resultFilePath = `./parsed_scripts/${pdfPath.split('/').pop()}.json`;
         fs.writeFileSync(
-            'parsed_script.json', 
+            resultFilePath, 
             JSON.stringify(parsedScript, null, 2)
         );
-
-        console.log("Successfully parsed screenplay to parsed_script.json");
-        return 'parsed_script.json';
+        return resultFilePath;
     } catch (error) {
         console.error("Error parsing screenplay:", error);
         process.exit(1);

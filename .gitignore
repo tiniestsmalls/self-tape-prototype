@@ -3,3 +3,4 @@ node_modules
 server/audio
 server/.env.local
 dist/
+server/parsed_scripts/

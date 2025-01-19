@@ -1,6 +1,6 @@
-import { generateAudio } from "./generate_audio.js";
-import { readThrough } from "./readthrough.js";
-import { parseScreenplay } from "./parse.js";
+import { generateAudio } from "./generate_audio.ts";
+import { readThrough } from "./readthrough.ts";
+import { parseScreenplay } from "./parse.ts";
 
 async function main() {
    if (process.argv.length < 3) {
