@@ -11,7 +11,8 @@
     "noEmit": true,
     "outDir": "./dist",
     "rootDir": "./",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "jsx": "react-jsx"
   },
   "include": ["**/*.ts"],
   "exclude": ["node_modules"]

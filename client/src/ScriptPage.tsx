@@ -1,21 +1,58 @@
 import React, { useEffect, useState } from 'react';
+import { playAudio } from './scripts/playAudio';
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+import { fuzzy } from 'fast-fuzzy';
 
-interface CharacterLine {
-      character?: string;
-      line?: string;
+export interface CharacterLine {
+      character: string;
+      line: string;
     };
-
+interface Command {
+    command: string;
+    callback: () => void;
+}
 
 export function ScriptPage() {
+    
+    
   const [scriptData, setScriptData] = useState<Array<CharacterLine>>([]);
+  const [lineIndex, setLineIndex] = useState(-1);
 
   useEffect(() => {
-    const scriptContent = localStorage.getItem('extractedScript');
+  const scriptContent = localStorage.getItem('extractedScript');
     console.log(scriptContent);
     if (scriptContent) {
       setScriptData(JSON.parse(scriptContent));
     }
   }, []);
+  
+  const {
+    listening,
+    transcript,
+    resetTranscript,
+  } = useSpeechRecognition();
+
+
+  useEffect(() => {
+    console.log(listening);
+    console.log(transcript)
+    console.log(lineIndex);
+    if (lineIndex < scriptData.length && lineIndex >= 0) {
+        const line = scriptData[lineIndex];
+        if (line.character === localStorage.getItem('userCharacterName')) {
+            if (!listening) {
+                if (fuzzy(transcript, line.line, { ignoreSymbols: true, ignoreCase: true }) > 0.5) {
+                    setLineIndex(lineIndex + 1);
+                } else {
+                    resetTranscript();
+                    SpeechRecognition.startListening();
+                }
+            }
+        } else {
+            playAudio(localStorage.getItem('scriptId')!, line, lineIndex, setLineIndex);
+        }
+    }
+  }, [lineIndex, listening]);
 
   return (
     <div className="script-container">
@@ -55,11 +92,45 @@ export function ScriptPage() {
         }
       `}</style>
 
+      <button
+        className="readthrough-button"
+        onClick={async () => {
+            if (!localStorage.getItem('userCharacterName')) {
+                alert('No character name found. Please upload the script again.');
+                return;
+            }
+            if (!localStorage.getItem('scriptId')) {
+                alert('No script ID found. Please upload the script again.');
+                return;
+            }
+            await SpeechRecognition.startListening();
+            setLineIndex(0);
+        }}
+      >
+        Start Readthrough
+      </button>
+      <style>{`
+        .readthrough-button {
+          padding: 10px 20px;
+          background-color: #007bff;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          margin-bottom: 20px;
+        }
+
+        .readthrough-button:hover {
+          background-color: #0056b3;
+        }
+      `}</style>
+
+
       <h3>{'Script Content'}</h3>
           {scriptData.map((dialogue, dIndex) => (
             <div key={dIndex} className="dialogue">
               <div className="character">{dialogue.character}</div>
-              <div className="line">{dialogue.line}</div>
+              <div className="line" style={{color: lineIndex === dIndex ? 'red' : 'black'}}>{dialogue.line}</div>
             </div>
           ))}
     </div>

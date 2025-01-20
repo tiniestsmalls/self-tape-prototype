@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import cors from 'cors';
 import fs from 'fs';
@@ -11,7 +11,7 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    cb(null, file.fieldname + '-' + uniqueSuffix)
+    cb(null, file.originalname + '-' + uniqueSuffix)
   }
 })
 const app = express();
@@ -21,7 +21,7 @@ const port = 3001; // Use a different port than your React app (which typically 
 app.use(cors());
 app.use(express.json());
 
-app.post('/api/parse-script', upload.single('file'), async (req, res) => {
+app.post('/api/parse-script', upload.single('file'), async (req: Request, res: Response) => {
   try {
     const file = req.file;
     const resultPath = await parseScreenplay(file.path);
@@ -35,8 +35,24 @@ app.post('/api/parse-script', upload.single('file'), async (req, res) => {
   }
 });
 
-app.get('/api/get-audio', (req, res) => {
-  const audioPath = req.query.audioPath as string;
+app.get('/api/get-audio', (req: Request, res: Response) => {
+  const { scriptId, lineIndex } = req.query as { scriptId?: string, lineIndex?: string };
+  if (!scriptId || !lineIndex) {
+    return res.status(400).json({ error: 'Missing scriptId or lineIndex parameter' });
+  }
+
+  const audioPath = `./audio/${scriptId}/${lineIndex}.mp3`;
+
+  // Check if file exists
+  if (!fs.existsSync(audioPath)) {
+    return res.status(404).json({ error: 'Audio file not found' });
+  }
+
+  // Set headers for audio streaming
+  res.setHeader('Content-Type', 'audio/mpeg');
+  res.setHeader('Content-Disposition', `attachment; filename="${lineIndex}.mp3"`);
+
+  // Stream the audio file
   const audioStream = fs.createReadStream(audioPath);
   audioStream.pipe(res);
 });

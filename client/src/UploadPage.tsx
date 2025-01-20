@@ -20,6 +20,7 @@ export function UploadPage() {
       console.log(data);
       localStorage.setItem('userCharacterName', characterName);
       localStorage.setItem('extractedScript', JSON.stringify(data.scriptContent));
+      localStorage.setItem('scriptId', data.resultPath);
       navigate('/script');
     } catch (error) {
       console.error('Error:', error);
