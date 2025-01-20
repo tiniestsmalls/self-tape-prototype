@@ -7,10 +7,6 @@ export interface CharacterLine {
       character: string;
       line: string;
     };
-interface Command {
-    command: string;
-    callback: () => void;
-}
 
 export function ScriptPage() {
     

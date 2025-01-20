@@ -1,6 +1,6 @@
 ## Setup
 
-In the backend folder, run the following commands:
+In the server folder, run the following commands:
 
 ```bash
 npm install
@@ -12,6 +12,11 @@ cp .env .env.local
 
 Then add your OpenAI API key to the `.env.local` file.
 
+## Run the server
+
+```bash
+npx tsx server.ts
+```
 
 ## Run parsing
 
