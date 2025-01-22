@@ -10,9 +10,10 @@ export interface CharacterLine {
 
 export function ScriptPage() {
     
-    
   const [scriptData, setScriptData] = useState<Array<CharacterLine>>([]);
   const [lineIndex, setLineIndex] = useState(-1);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [recordingChunks, setRecordingChunks] = useState<Blob[]>([]);
 
   useEffect(() => {
   const scriptContent = localStorage.getItem('extractedScript');
@@ -28,6 +29,28 @@ export function ScriptPage() {
     resetTranscript,
   } = useSpeechRecognition();
 
+  useEffect(() => {
+    navigator.mediaDevices
+      .getUserMedia({ 
+        video: true, 
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false
+        }
+      })
+      .then((stream) => {
+        const videoElement = document.getElementById("video") as HTMLVideoElement;
+        if (videoElement) {
+          videoElement.srcObject = stream;
+          videoElement.muted = true;
+          (window as any).stream = stream;
+        }
+      })
+      .catch((error) => {
+        console.error("Error accessing media devices:", error);
+      });
+  }, []);
 
   useEffect(() => {
     console.log(listening);
@@ -50,63 +73,144 @@ export function ScriptPage() {
     }
   }, [lineIndex, listening]);
 
-  return (
-    <div className="script-container">
-      <style>{`
-        .script-container {
-          max-width: 800px;
-          margin: 0 auto;
-          padding: 20px;
+  const startRecording = () => {
+    const stream = (window as any).stream;
+    if (stream) {
+      const recorder = new MediaRecorder(stream);
+      setRecordingChunks([]);
+      
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          setRecordingChunks(chunks => [...chunks, event.data]);
         }
-        
-        .scene {
-          margin-bottom: 30px;
-          padding: 15px;
-          background-color: #f5f5f5;
-          border-radius: 8px;
-        }
-        
-        .location {
-          font-weight: bold;
-          color: #444;
-          margin-bottom: 10px;
-        }
-        
-        .dialogue {
-          margin: 10px 0;
-          padding-left: 20px;
-        }
-        
-        .character {
-          color: #2c5282;
-          font-weight: 600;
-        }
-        
-        .line {
-          margin-left: 20px;
-          color: #333;
-        }
-      `}</style>
+      };
+      
+      recorder.start(1000);
+      setMediaRecorder(recorder);
+    }
+  };
 
-      <button
-        className="readthrough-button"
-        onClick={async () => {
-            if (!localStorage.getItem('userCharacterName')) {
+  const stopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.requestData();
+      mediaRecorder.stop();
+      
+      setTimeout(() => {
+        const blob = new Blob(recordingChunks, { type: 'video/webm; codecs=vp9' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'readthrough-recording.webm';
+        a.click();
+        URL.revokeObjectURL(url);
+        setRecordingChunks([]);
+      }, 200);
+    }
+  };
+
+  useEffect(() => {
+    if (lineIndex >= scriptData.length && mediaRecorder) {
+      setTimeout(() => {
+        stopRecording();
+      }, 5000);
+    }
+  }, [lineIndex, scriptData.length, mediaRecorder]);
+
+  return (
+    <div>
+      <header>Audition App - Script Page</header>
+
+      <div className="container">
+        <div className="camera">
+          <video id="video" autoPlay playsInline></video>
+        </div>
+
+        <div className="script-container">
+          <button
+            className="start-button"
+            onClick={async () => {
+              if (!localStorage.getItem('userCharacterName')) {
                 alert('No character name found. Please upload the script again.');
                 return;
-            }
-            if (!localStorage.getItem('scriptId')) {
+              }
+              if (!localStorage.getItem('scriptId')) {
                 alert('No script ID found. Please upload the script again.');
                 return;
-            }
-            await SpeechRecognition.startListening();
-            setLineIndex(0);
-        }}
-      >
-        Start Readthrough
-      </button>
+              }
+              startRecording();
+              await SpeechRecognition.startListening();
+              setLineIndex(0);
+            }}
+          >
+            Start Readthrough
+          </button>
+
+          {scriptData.map((dialogue, dIndex) => (
+            <div key={dIndex} className="line">
+              <span className="character">{dialogue.character}:</span>{' '}
+              <span style={{color: lineIndex === dIndex ? 'red' : 'inherit'}}>{dialogue.line}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <style>{`
-        .readthrough-button {
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+
+        body {
+          font-family: Arial, sans-serif;
+        }
+
+        header {
+          background-color: #f5f5f5;
+          padding: 10px;
+          text-align: center;
+          font-size: 20px;
+          font-weight: bold;
+          border-bottom: 1px solid #ccc;
+        }
+
+        .container {
+          display: flex;
+          height: calc(100vh - 100px);
+        }
+
+        .camera {
+          flex: 1;
+          background-color: #eaeaea;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .camera video {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .script-container {
+          flex: 1;
+          background-color: #fff;
+          padding: 20px;
+          overflow-y: auto;
+          border-left: 1px solid #ccc;
+        }
+
+        .line {
+          margin-bottom: 10px;
+        }
+
+        .character {
+          font-weight: bold;
+          color: #007bff;
+        }
+
+        .start-button {
           padding: 10px 20px;
           background-color: #007bff;
           color: white;
@@ -116,19 +220,10 @@ export function ScriptPage() {
           margin-bottom: 20px;
         }
 
-        .readthrough-button:hover {
+        .start-button:hover {
           background-color: #0056b3;
         }
       `}</style>
-
-
-      <h3>{'Script Content'}</h3>
-          {scriptData.map((dialogue, dIndex) => (
-            <div key={dIndex} className="dialogue">
-              <div className="character">{dialogue.character}</div>
-              <div className="line" style={{color: lineIndex === dIndex ? 'red' : 'black'}}>{dialogue.line}</div>
-            </div>
-          ))}
     </div>
   );
 } 
