@@ -24,11 +24,14 @@ app.use(express.json());
 app.post('/api/parse-script', upload.single('file'), async (req: Request, res: Response) => {
   try {
     const file = req.file;
+    if (!file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
     const resultPath = await parseScreenplay(file.path);
     const result = await fs.readFileSync(resultPath, 'utf8');
     const parsedResult = JSON.parse(result);
     generateAudio(resultPath);
-    res.json({ scriptContent: parsedResult, resultPath });
+    res.json({ scriptContent: parsedResult, resultPath: resultPath.split('/').pop() });
   } catch (error) {
     console.error('Error parsing script:', error);
     res.status(500).json({ error: 'Failed to parse script' });

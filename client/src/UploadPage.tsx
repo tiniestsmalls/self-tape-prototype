@@ -12,7 +12,7 @@ export function UploadPage() {
     formData.append('characterName', characterName);
 
     try {
-      const response = await fetch('http://localhost:3001/api/parse-script', {
+      const response = await fetch('http://18.118.198.25:3001/api/parse-script', {
         method: 'POST',
         body: formData,
       });

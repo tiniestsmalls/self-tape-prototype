@@ -4,7 +4,7 @@ export async function playAudio(scriptId: string, line: CharacterLine, i: number
     console.log(`\n[${line.character}]: ${line.line}`);
         const lineIndex = `${i}_${line.character.replace(/ /g, '_')}`;
         try {
-          const response = await fetch(`http://localhost:3001/api/get-audio?scriptId=${scriptId}&lineIndex=${lineIndex}`, {
+          const response = await fetch(`http://18.118.198.25:3001/api/get-audio?scriptId=${scriptId}&lineIndex=${lineIndex}`, {
             method: 'GET'
           });
           if (!response.ok) {
